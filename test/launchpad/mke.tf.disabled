@@ -1,0 +1,44 @@
+# Disabled due to coupling failures
+
+provider "mirantis-mke-connect" {
+	endpoint = "https://${module.managers.lb_dns_name}"
+	username = var.admin_username
+	password = var.admin_password
+	unsafe_ssl_client = true
+}
+
+
+resource "mirantis-mke-connect_clientbundle" "admin" {
+	name = "admin" # this actually doesn't do anything, but TF needs at least one attribute.
+}
+
+provider "kubernetes" {
+	host                   = resource.mirantis-mke-connect_clientbundle.admin.kube[0].host
+	client_certificate     = resource.mirantis-mke-connect_clientbundle.admin.kube[0].client_cert
+	client_key             = resource.mirantis-mke-connect_clientbundle.admin.kube[0].client_key
+	cluster_ca_certificate = resource.mirantis-mke-connect_clientbundle.admin.kube[0].ca_cert
+}
+
+resource "kubernetes_namespace" "mke-provider" {
+  metadata {
+    name = "mke-provider"
+  }
+}
+
+provider "docker" {
+  host    = "tcp://${module.managers.lb_dns_name}:443"
+  ca_material = resource.mirantis-mke-connect_clientbundle.admin.ca_cert
+  cert_material = resource.mirantis-mke-connect_clientbundle.admin.client_cert
+  key_material = resource.mirantis-mke-connect_clientbundle.admin.private_key
+}
+
+# Find the latest nginx image.
+resource "docker_image" "nginx" {
+  name = "nginx"
+}
+
+# Start an nginx container
+resource "docker_container" "nginx-server" {
+  name  = "my-nginx-server"
+  image = docker_image.nginx.latest
+}
