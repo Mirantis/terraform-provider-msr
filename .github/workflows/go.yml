@@ -11,10 +11,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      GOPRIVATE: github.com/Mirantis/mcc
-      GH_ACCESS_TOKEN: ${{ secrets.GH_MCC_ACCESS_TOKEN }}
-      GH_USERNAME: ${{ secrets.GH_MCC_USERNAME }}
     steps:
     - uses: actions/checkout@v3
 
@@ -22,9 +18,6 @@ jobs:
       uses: actions/setup-go@v3
       with:
         go-version: 1.17
-    - name: Setup MCC gitub repo private access
-      run: git config --global url."https://$GH_USERNAME:$GH_ACCESS_TOKEN@github.com/".insteadOf "https://github.com/"
-
     - name: Build
       run: go build -v ./...
 
