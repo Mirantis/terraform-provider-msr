@@ -1,5 +1,5 @@
 variable "cluster_name" {
-  default = "tf-mcc-provider-test"
+  default = "tf-msr-provider-test"
 }
 
 variable "aws_region" {
@@ -19,8 +19,8 @@ variable "admin_password" {
 
 variable "keypath" {
   description = "Path to the PEM used as an ssh key to each host."
-  type = string
-  default = "./ssh_keys/privatekey.pem"
+  type        = string
+  default     = "./ssh_keys/privatekey.pem"
 }
 
 
