@@ -6,8 +6,8 @@ before:
     - go mod tidy
 builds:
 - main: ./cmd/mirantis-msr-connect
-  id: "terraform-provider-msr"
-  binary: "terraform-provider-msr_v{{ .Version }}"
+  id: "terraform-provider-msr-connect"
+  binary: "terraform-provider-msr-connect_v{{ .Version }}"
   env:
     # goreleaser does not work with CGO, it could also complicate
     # usage by users in CI/CD systems like Terraform Cloud where
@@ -33,12 +33,12 @@ builds:
       goarch: '386'
 archives:
 - format: zip
-  name_template: 'terraform-provider-msr_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+  name_template: 'terraform-provider-msr-connect_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
 checksum:
   extra_files:
     - glob: 'terraform-registry-manifest.json'
-      name_template: 'terraform-provider-msr_{{ .Version }}_manifest.json'
-  name_template: 'terraform-provider-msr_{{ .Version }}_SHA256SUMS'
+      name_template: 'terraform-provider-msr-connect_{{ .Version }}_manifest.json'
+  name_template: 'terraform-provider-msr-connect_{{ .Version }}_SHA256SUMS'
   algorithm: sha256
 signs:
   - artifacts: checksum
@@ -55,7 +55,7 @@ signs:
 release:
   extra_files:
     - glob: 'terraform-registry-manifest.json'
-      name_template: 'terraform-provider-msr_{{ .Version }}_manifest.json'
+      name_template: 'terraform-provider-msr-connect_{{ .Version }}_manifest.json'
   # If you want to manually examine the release before its live, uncomment this line:
   # draft: true
 changelog:
