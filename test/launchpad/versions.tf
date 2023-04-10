@@ -2,9 +2,9 @@
 terraform {
   required_version = ">= 1.0.0"
   required_providers {
-    mirantis-msr-connect = {
+    mirantis-msr = {
       version = ">= 0.9.0"
-      source  = "mirantis.com/providers/mirantis-msr-connect"
+      source  = "mirantis.com/providers/mirantis-msr"
     }
     docker = {
       source  = "kreuzwerker/docker"
