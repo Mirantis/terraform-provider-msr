@@ -1,9 +1,9 @@
 
 // Mirantis installing terraform provider
-provider "mirantis-msr-connect" {}
+provider "mirantis-msr" {}
 
 // Launchpad installer
-resource "mirantis-msr-connect_launchpad" "test" {
+resource "mirantis-msr_launchpad" "test" {
 
   skip_destroy = true
 
@@ -87,5 +87,5 @@ resource "mirantis-msr-connect_launchpad" "test" {
 }
 
 output "mke_cluster_name" {
-  value = mirantis-msr-connect_launchpad.test.metadata[0].name
+  value = mirantis-msr_launchpad.test.metadata[0].name
 }
