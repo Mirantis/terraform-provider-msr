@@ -35,14 +35,14 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"mirantis-msr_user": ResourceUser(),
-			"mirantis-msr_org":  ResourceOrg(),
-			"mirantis-msr_team": ResourceTeam(),
-			"mirantis-msr_repo": ResourceRepo(),
+			"msr_user": ResourceUser(),
+			"msr_org":  ResourceOrg(),
+			"msr_team": ResourceTeam(),
+			"msr_repo": ResourceRepo(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"mirantis-msr_accounts": dataSourceAccounts(),
-			"mirantis-msr_account":  dataSourceAccount(),
+			"msr_accounts": dataSourceAccounts(),
+			"msr_account":  dataSourceAccount(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
