@@ -97,6 +97,7 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 			return nil, fmt.Errorf("%w: Status code: %d", ErrUnauthorizedReq, res.StatusCode)
 		}
 		errStruct := &ResponseError{}
+
 		if err := json.Unmarshal(body, errStruct); err != nil {
 			return nil, fmt.Errorf("%w: Status code: %d", ErrUnmarshaling, res.StatusCode)
 		}

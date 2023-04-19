@@ -2,12 +2,16 @@ package connect
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Mirantis/terraform-provider-msr/mirantis/msr/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
+
+const IdDelimiter = "."
 
 // ResourceTeam for managing MSR team
 func ResourceTeam() *schema.Resource {
@@ -65,7 +69,8 @@ func resourceTeamCreate(ctx context.Context, d *schema.ResourceData, m interface
 	if err := d.Set("last_updated", time.Now().Format(time.RFC850)); err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(t.ID)
+
+	d.SetId(createID(ctx, d.Get("org_id").(string), t.Name))
 
 	for _, id := range d.Get("user_ids").([]interface{}) {
 		u := client.ResponseAccount{
@@ -85,14 +90,20 @@ func resourceTeamRead(ctx context.Context, d *schema.ResourceData, m interface{}
 		return diag.Errorf("unable to cast meta interface to MSR Client")
 	}
 
-	t, err := c.ReadTeam(ctx, d.Get("org_id").(string), d.State().ID)
+	orgID, teamID, err := extractIDs(ctx, d.State().ID)
+	if err != nil {
+		d.SetId("")
+		return diag.FromErr(err)
+	}
+
+	t, err := c.ReadTeam(ctx, orgID, teamID)
 	if err != nil {
 		// If the user doesn't exist we should gracefully handle it
 		d.SetId("")
 		return diag.FromErr(err)
 	}
 
-	d.SetId(t.ID)
+	d.SetId(createID(ctx, t.OrgID, t.Name))
 
 	return diag.Diagnostics{}
 }
@@ -103,11 +114,22 @@ func resourceTeamUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	if !ok {
 		return diag.Errorf("unable to cast meta interface to MSR Client")
 	}
+
+	orgID, teamID, err := extractIDs(ctx, d.State().ID)
+	if err != nil {
+		d.SetId("")
+		return diag.FromErr(err)
+	}
+
 	team := client.Team{
-		ID:          d.State().ID,
+		ID:          teamID,
 		Description: d.Get("description").(string),
 	}
-	orgID := d.Get("org_id").(string)
+
+	if err != nil {
+		d.SetId("")
+		return diag.FromErr(err)
+	}
 
 	if d.HasChange("description") {
 		if _, err := c.UpdateTeam(ctx, orgID, team); err != nil {
@@ -134,7 +156,14 @@ func resourceTeamDelete(ctx context.Context, d *schema.ResourceData, m interface
 	if !ok {
 		return diag.Errorf("unable to cast meta interface to MSR Client")
 	}
-	if err := c.DeleteTeam(ctx, d.Get("org_id").(string), d.State().ID); err != nil {
+
+	orgID, teamID, err := extractIDs(ctx, d.State().ID)
+	if err != nil {
+		d.SetId("")
+		return diag.FromErr(err)
+	}
+
+	if err := c.DeleteTeam(ctx, orgID, teamID); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -143,4 +172,17 @@ func resourceTeamDelete(ctx context.Context, d *schema.ResourceData, m interface
 	d.SetId("")
 
 	return diag.Diagnostics{}
+}
+
+func extractIDs(ctx context.Context, id string) (org_id string, team_id string, err error) {
+	ids := strings.Split(id, IdDelimiter)
+
+	if len(ids) > 2 || len(ids) < 2 {
+		return "", "", fmt.Errorf("resource ID is invalid format '%s'", id)
+	}
+	return ids[0], ids[1], nil
+}
+
+func createID(ctx context.Context, orgID string, teamID string) (id string) {
+	return fmt.Sprintf("%s%s%s", orgID, IdDelimiter, teamID)
 }
