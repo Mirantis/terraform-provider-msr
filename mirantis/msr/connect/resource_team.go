@@ -70,7 +70,7 @@ func resourceTeamCreate(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 
-	d.SetId(createID(ctx, d.Get("org_id").(string), t.Name))
+	d.SetId(createTeamID(ctx, d.Get("org_id").(string), t.Name))
 
 	for _, id := range d.Get("user_ids").([]interface{}) {
 		u := client.ResponseAccount{
@@ -90,7 +90,7 @@ func resourceTeamRead(ctx context.Context, d *schema.ResourceData, m interface{}
 		return diag.Errorf("unable to cast meta interface to MSR Client")
 	}
 
-	orgID, teamID, err := extractIDs(ctx, d.State().ID)
+	orgID, teamID, err := extractTeamIDs(ctx, d.State().ID)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -103,7 +103,7 @@ func resourceTeamRead(ctx context.Context, d *schema.ResourceData, m interface{}
 		return diag.FromErr(err)
 	}
 
-	d.SetId(createID(ctx, t.OrgID, t.Name))
+	d.SetId(createTeamID(ctx, t.OrgID, t.Name))
 
 	return diag.Diagnostics{}
 }
@@ -115,7 +115,7 @@ func resourceTeamUpdate(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.Errorf("unable to cast meta interface to MSR Client")
 	}
 
-	orgID, teamID, err := extractIDs(ctx, d.State().ID)
+	orgID, teamID, err := extractTeamIDs(ctx, d.State().ID)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -157,7 +157,7 @@ func resourceTeamDelete(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.Errorf("unable to cast meta interface to MSR Client")
 	}
 
-	orgID, teamID, err := extractIDs(ctx, d.State().ID)
+	orgID, teamID, err := extractTeamIDs(ctx, d.State().ID)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -174,7 +174,7 @@ func resourceTeamDelete(ctx context.Context, d *schema.ResourceData, m interface
 	return diag.Diagnostics{}
 }
 
-func extractIDs(ctx context.Context, id string) (org_id string, team_id string, err error) {
+func extractTeamIDs(ctx context.Context, id string) (orgID string, teamID string, err error) {
 	ids := strings.Split(id, IdDelimiter)
 
 	if len(ids) > 2 || len(ids) < 2 {
@@ -183,6 +183,6 @@ func extractIDs(ctx context.Context, id string) (org_id string, team_id string, 
 	return ids[0], ids[1], nil
 }
 
-func createID(ctx context.Context, orgID string, teamID string) (id string) {
+func createTeamID(ctx context.Context, orgID string, teamID string) (id string) {
 	return fmt.Sprintf("%s%s%s", orgID, IdDelimiter, teamID)
 }

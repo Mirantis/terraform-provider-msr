@@ -71,8 +71,8 @@ func (c *Client) CreateRepo(ctx context.Context, orgName string, repo CreateRepo
 }
 
 // ReadRepo method retrieves a repo from the MSR endpoint
-func (c *Client) ReadRepo(ctx context.Context, repoName string) (ResponseRepo, error) {
-	url := fmt.Sprintf("%s/%s", c.createMsrUrl("repositories"), repoName)
+func (c *Client) ReadRepo(ctx context.Context, orgName string, repoName string) (ResponseRepo, error) {
+	url := fmt.Sprintf("%s/%s/%s", c.createMsrUrl("repositories"), orgName, repoName)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return ResponseRepo{}, fmt.Errorf("reading repo %s failed in MSR client: %w: %s", repoName, ErrRequestCreation, err)
@@ -92,11 +92,11 @@ func (c *Client) ReadRepo(ctx context.Context, repoName string) (ResponseRepo, e
 }
 
 // UpdateRepo updates a repo in the MSR endpoint
-func (c *Client) UpdateRepo(ctx context.Context, repoName string, repo UpdateRepo) (ResponseRepo, error) {
+func (c *Client) UpdateRepo(ctx context.Context, orgName string, repoName string, repo UpdateRepo) (ResponseRepo, error) {
 	if (repo == UpdateRepo{}) {
 		return ResponseRepo{}, fmt.Errorf("updating repo failed. %w: %s", ErrEmptyStruct, repoName)
 	}
-	url := fmt.Sprintf("%s/%s", c.createMsrUrl("repositories"), repoName)
+	url := fmt.Sprintf("%s/%s/%s", c.createMsrUrl("repositories"), orgName, repoName)
 
 	body, err := json.Marshal(repo)
 	if err != nil {
