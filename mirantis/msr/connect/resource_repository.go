@@ -3,6 +3,7 @@ package connect
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Mirantis/terraform-provider-msr/mirantis/msr/client"
@@ -72,14 +73,20 @@ func resourceRepoRead(ctx context.Context, d *schema.ResourceData, m interface{}
 		return diag.Errorf("unable to cast meta interface to MSR Client")
 	}
 
-	_, err := c.ReadRepo(ctx, d.State().ID)
+	orgID, repoID, err := extractRepoIDs(ctx, d.State().ID)
+	if err != nil {
+		d.SetId("")
+		return diag.FromErr(err)
+	}
+
+	_, err = c.ReadRepo(ctx, orgID, repoID)
 	if err != nil {
 		// If the repo doesn't exist we should gracefully handle it
 		d.SetId("")
 		return diag.FromErr(err)
 	}
 
-	d.SetId(d.State().ID)
+	d.SetId(createRepoID(ctx, orgID, repoID))
 
 	return diag.Diagnostics{}
 }
@@ -91,13 +98,19 @@ func resourceRepoUpdate(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.Errorf("unable to cast meta interface to MSR Client")
 	}
 
+	orgID, repoID, err := extractRepoIDs(ctx, d.State().ID)
+	if err != nil {
+		d.SetId("")
+		return diag.FromErr(err)
+	}
+
 	repo := client.UpdateRepo{
 		ScanOnPush: d.Get("scan_on_push").(bool),
 		Visibility: "private",
 	}
 
 	if d.HasChange("scan_on_push") {
-		if _, err := c.UpdateRepo(ctx, d.State().ID, repo); err != nil {
+		if _, err := c.UpdateRepo(ctx, orgID, repoID, repo); err != nil {
 			return diag.FromErr(err)
 		}
 
@@ -124,4 +137,17 @@ func resourceRepoDelete(ctx context.Context, d *schema.ResourceData, m interface
 	d.SetId("")
 
 	return diag.Diagnostics{}
+}
+
+func extractRepoIDs(ctx context.Context, id string) (org_id string, repo_id string, err error) {
+	ids := strings.Split(id, IdDelimiter)
+
+	if len(ids) > 2 || len(ids) < 2 {
+		return "", "", fmt.Errorf("resource ID is invalid format '%s'", id)
+	}
+	return ids[0], ids[1], nil
+}
+
+func createRepoID(ctx context.Context, orgID string, teamID string) (id string) {
+	return fmt.Sprintf("%s%s%s", orgID, IdDelimiter, teamID)
 }

@@ -219,7 +219,7 @@ func TestReadRepoSuccess(t *testing.T) {
 		t.Error("couldn't create test client")
 	}
 	ctx := context.Background()
-	resp, err := testClient.ReadRepo(ctx, "fakename")
+	resp, err := testClient.ReadRepo(ctx, "fakeorg", "fakename")
 
 	if !reflect.DeepEqual(tc.expectedResponse, resp) {
 		t.Errorf("expected resp: (%+v),\n got (%+v)", tc.expectedResponse, resp)
@@ -247,7 +247,7 @@ func TestReadRepoFailed(t *testing.T) {
 		t.Error("couldn't create test client")
 	}
 	ctx := context.Background()
-	resp, err := testClient.ReadRepo(ctx, "fakename")
+	resp, err := testClient.ReadRepo(ctx, "fakeorg", "fakename")
 
 	if !reflect.DeepEqual(tc.expectedResponse, resp) {
 		t.Errorf("expected resp: (%+v),\n got (%+v)", tc.expectedResponse, resp)
@@ -283,7 +283,7 @@ func TestUpdateRepoSuccess(t *testing.T) {
 		t.Error("couldn't create test client")
 	}
 	ctx := context.Background()
-	resp, err := testClient.UpdateRepo(ctx, "fakeid", client.UpdateRepo{ScanOnPush: true})
+	resp, err := testClient.UpdateRepo(ctx, "fakeorg", "fakeid", client.UpdateRepo{ScanOnPush: true})
 
 	if !reflect.DeepEqual(tc.expectedResponse, resp) {
 		t.Errorf("expected resp: (%+v),\n got (%+v)", tc.expectedResponse, resp)
@@ -311,7 +311,7 @@ func TestUpdateRepoEmpty(t *testing.T) {
 		t.Error("couldn't create test client")
 	}
 	ctx := context.Background()
-	resp, err := testClient.UpdateRepo(ctx, "fakename", client.UpdateRepo{})
+	resp, err := testClient.UpdateRepo(ctx, "fakeorg", "fakename", client.UpdateRepo{})
 
 	if !reflect.DeepEqual(tc.expectedResponse, resp) {
 		t.Errorf("expected resp: (%+v),\n got (%+v)", tc.expectedResponse, resp)
@@ -339,7 +339,7 @@ func TestUpdateRepoFailed(t *testing.T) {
 		t.Error("couldn't create test client")
 	}
 	ctx := context.Background()
-	resp, err := testClient.UpdateRepo(ctx, "fakeid", client.UpdateRepo{ScanOnPush: true})
+	resp, err := testClient.UpdateRepo(ctx, "fakeorg", "fakeid", client.UpdateRepo{ScanOnPush: true})
 
 	if !reflect.DeepEqual(tc.expectedResponse, resp) {
 		t.Errorf("expected resp: (%+v),\n got (%+v)", tc.expectedResponse, resp)
