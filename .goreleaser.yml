@@ -5,7 +5,7 @@ before:
     # this is just an example and not a requirement for provider building/publishing
     - go mod tidy
 builds:
-- main: ./cmd/mirantis-msr
+- main: ./cmd/msr
   id: "terraform-provider-msr"
   binary: "terraform-provider-msr_v{{ .Version }}"
   env:
