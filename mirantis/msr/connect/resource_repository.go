@@ -62,7 +62,7 @@ func resourceRepoCreate(ctx context.Context, d *schema.ResourceData, m interface
 	if err := d.Set("last_updated", time.Now().Format(time.RFC850)); err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(fmt.Sprintf("%s/%s", orgName, repo.Name))
+	d.SetId(createRepoID(ctx, orgName, repo.Name))
 
 	return diag.Diagnostics{}
 }
