@@ -141,11 +141,9 @@ func resourceRepoDelete(ctx context.Context, d *schema.ResourceData, m interface
 
 func extractRepoIDs(ctx context.Context, id string) (org_id string, repo_id string, err error) {
 	ids := strings.Split(id, IdDelimiter)
+	repo := strings.Replace(id, ids[0]+".", "", 1)
 
-	if len(ids) > 2 || len(ids) < 2 {
-		return "", "", fmt.Errorf("resource ID is invalid format '%s'", id)
-	}
-	return ids[0], ids[1], nil
+	return ids[0], repo, nil
 }
 
 func createRepoID(ctx context.Context, orgID string, teamID string) (id string) {
