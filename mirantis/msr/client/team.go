@@ -61,7 +61,7 @@ func (c *Client) ReadTeam(ctx context.Context, orgID string, teamID string) (Tea
 	body, err := c.doRequest(req)
 
 	if err != nil {
-		return Team{}, fmt.Errorf("orgid: %s, teamid: %s - %w", orgID, teamID, err)
+		return Team{}, fmt.Errorf("org_id: %s, team_id: %s - %w", orgID, teamID, err)
 	}
 
 	team := Team{}

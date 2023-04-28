@@ -2,16 +2,12 @@ package connect
 
 import (
 	"context"
-	"fmt"
-	"strings"
 	"time"
 
 	"github.com/Mirantis/terraform-provider-msr/mirantis/msr/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
-
-const IdDelimiter = "."
 
 // ResourceTeam for managing MSR team
 func ResourceTeam() *schema.Resource {
@@ -70,7 +66,7 @@ func resourceTeamCreate(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 
-	d.SetId(createTeamID(ctx, d.Get("org_id").(string), t.Name))
+	d.SetId(CreateResourceID(ctx, d.Get("org_id").(string), t.Name))
 
 	for _, id := range d.Get("user_ids").([]interface{}) {
 		u := client.ResponseAccount{
@@ -90,7 +86,7 @@ func resourceTeamRead(ctx context.Context, d *schema.ResourceData, m interface{}
 		return diag.Errorf("unable to cast meta interface to MSR Client")
 	}
 
-	orgID, teamID, err := extractTeamIDs(ctx, d.State().ID)
+	orgID, teamID, err := ExtractResourceIDs(ctx, d.State().ID)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -103,7 +99,7 @@ func resourceTeamRead(ctx context.Context, d *schema.ResourceData, m interface{}
 		return diag.FromErr(err)
 	}
 
-	d.SetId(createTeamID(ctx, t.OrgID, t.Name))
+	d.SetId(CreateResourceID(ctx, t.OrgID, t.Name))
 
 	return diag.Diagnostics{}
 }
@@ -115,7 +111,7 @@ func resourceTeamUpdate(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.Errorf("unable to cast meta interface to MSR Client")
 	}
 
-	orgID, teamID, err := extractTeamIDs(ctx, d.State().ID)
+	orgID, teamID, err := ExtractResourceIDs(ctx, d.State().ID)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -157,7 +153,7 @@ func resourceTeamDelete(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.Errorf("unable to cast meta interface to MSR Client")
 	}
 
-	orgID, teamID, err := extractTeamIDs(ctx, d.State().ID)
+	orgID, teamID, err := ExtractResourceIDs(ctx, d.State().ID)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -172,17 +168,4 @@ func resourceTeamDelete(ctx context.Context, d *schema.ResourceData, m interface
 	d.SetId("")
 
 	return diag.Diagnostics{}
-}
-
-func extractTeamIDs(ctx context.Context, id string) (orgID string, teamID string, err error) {
-	ids := strings.Split(id, IdDelimiter)
-
-	if len(ids) > 2 || len(ids) < 2 {
-		return "", "", fmt.Errorf("resource ID is invalid format '%s'", id)
-	}
-	return ids[0], ids[1], nil
-}
-
-func createTeamID(ctx context.Context, orgID string, teamID string) (id string) {
-	return fmt.Sprintf("%s%s%s", orgID, IdDelimiter, teamID)
 }

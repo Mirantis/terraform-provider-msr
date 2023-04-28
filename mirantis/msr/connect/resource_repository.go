@@ -2,8 +2,6 @@ package connect
 
 import (
 	"context"
-	"fmt"
-	"strings"
 	"time"
 
 	"github.com/Mirantis/terraform-provider-msr/mirantis/msr/client"
@@ -62,7 +60,7 @@ func resourceRepoCreate(ctx context.Context, d *schema.ResourceData, m interface
 	if err := d.Set("last_updated", time.Now().Format(time.RFC850)); err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(createRepoID(ctx, orgName, repo.Name))
+	d.SetId(CreateResourceID(ctx, orgName, repo.Name))
 
 	return diag.Diagnostics{}
 }
@@ -73,7 +71,7 @@ func resourceRepoRead(ctx context.Context, d *schema.ResourceData, m interface{}
 		return diag.Errorf("unable to cast meta interface to MSR Client")
 	}
 
-	orgID, repoID, err := extractRepoIDs(ctx, d.State().ID)
+	orgID, repoID, err := ExtractResourceIDs(ctx, d.State().ID)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -86,7 +84,7 @@ func resourceRepoRead(ctx context.Context, d *schema.ResourceData, m interface{}
 		return diag.FromErr(err)
 	}
 
-	d.SetId(createRepoID(ctx, orgID, repoID))
+	d.SetId(CreateResourceID(ctx, orgID, repoID))
 
 	return diag.Diagnostics{}
 }
@@ -98,7 +96,7 @@ func resourceRepoUpdate(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.Errorf("unable to cast meta interface to MSR Client")
 	}
 
-	orgID, repoID, err := extractRepoIDs(ctx, d.State().ID)
+	orgID, repoID, err := ExtractResourceIDs(ctx, d.State().ID)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -137,17 +135,4 @@ func resourceRepoDelete(ctx context.Context, d *schema.ResourceData, m interface
 	d.SetId("")
 
 	return diag.Diagnostics{}
-}
-
-func extractRepoIDs(ctx context.Context, id string) (org_id string, repo_id string, err error) {
-	ids := strings.Split(id, IdDelimiter)
-
-	if len(ids) > 2 || len(ids) < 2 {
-		return "", "", fmt.Errorf("resource ID is invalid format '%s'", id)
-	}
-	return ids[0], ids[1], nil
-}
-
-func createRepoID(ctx context.Context, orgID string, teamID string) (id string) {
-	return fmt.Sprintf("%s%s%s", orgID, IdDelimiter, teamID)
 }
