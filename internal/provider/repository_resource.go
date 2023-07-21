@@ -1,10 +1,10 @@
-package connect
+package provider
 
 import (
 	"context"
 	"time"
 
-	"github.com/Mirantis/terraform-provider-msr/mirantis/msr/client"
+	"github.com/Mirantis/terraform-provider-msr/internal/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )

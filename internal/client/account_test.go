@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/Mirantis/terraform-provider-msr/mirantis/msr/client"
+	"github.com/Mirantis/terraform-provider-msr/internal/client"
 )
 
 type testAccountStruct struct {

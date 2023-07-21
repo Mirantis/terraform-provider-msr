@@ -1,4 +1,4 @@
-package connect_test
+package provider_test
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 	"reflect"
 	"testing"
 
-	client "github.com/Mirantis/terraform-provider-msr/mirantis/msr/client"
-	connect "github.com/Mirantis/terraform-provider-msr/mirantis/msr/connect"
+	client "github.com/Mirantis/terraform-provider-msr/internal/client"
+	provider "github.com/Mirantis/terraform-provider-msr/internal/provider"
 )
 
 func TestCreateValidResourceIDs(t *testing.T) {
@@ -16,9 +16,9 @@ func TestCreateValidResourceIDs(t *testing.T) {
 
 	orgID := "mke"
 	teamID := "test"
-	id := connect.CreateResourceID(ctx, orgID, teamID)
+	id := provider.CreateResourceID(ctx, orgID, teamID)
 
-	expected := fmt.Sprintf("%s%s%s", orgID, connect.IdDelimiter, teamID)
+	expected := fmt.Sprintf("%s%s%s", orgID, provider.IdDelimiter, teamID)
 
 	if !reflect.DeepEqual(id, expected) {
 		t.Errorf("expected (%v), got (%v)", expected, id)
@@ -30,9 +30,9 @@ func TestCreateInvalidResourceIDs(t *testing.T) {
 
 	orgID := "mke"
 	teamID := "test"
-	id := connect.CreateResourceID(ctx, orgID, teamID)
+	id := provider.CreateResourceID(ctx, orgID, teamID)
 
-	expected := fmt.Sprintf("%s%s%swrong", orgID, connect.IdDelimiter, teamID)
+	expected := fmt.Sprintf("%s%s%swrong", orgID, provider.IdDelimiter, teamID)
 
 	if reflect.DeepEqual(id, expected) {
 		t.Errorf("expected id: (%v), got (%v)", expected, id)
@@ -44,9 +44,9 @@ func TestParseValidResourceIDs(t *testing.T) {
 
 	eOrgID := "mke"
 	eResID := "test"
-	id := fmt.Sprintf("%s%s%s", eOrgID, connect.IdDelimiter, eResID)
+	id := fmt.Sprintf("%s%s%s", eOrgID, provider.IdDelimiter, eResID)
 
-	orgID, resourceID, err := connect.ExtractResourceIDs(ctx, id)
+	orgID, resourceID, err := provider.ExtractResourceIDs(ctx, id)
 	if err != nil {
 		t.Errorf("resource ID is invalid format '%s'", id)
 	}
@@ -66,7 +66,7 @@ func TestParseInvalidResourceIDs(t *testing.T) {
 	teamID := "test"
 	id := fmt.Sprintf("%s.%s", orgID, teamID)
 	expectedErr := client.ErrInvalidResourceIDFormat
-	orgID, resourceID, err := connect.ExtractResourceIDs(ctx, id)
+	orgID, resourceID, err := provider.ExtractResourceIDs(ctx, id)
 	if !errors.Is(err, expectedErr) {
 		t.Errorf("expected error: (%v),\n got (%v)", expectedErr, err)
 	}

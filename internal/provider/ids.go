@@ -1,11 +1,11 @@
-package connect
+package provider
 
 import (
 	"context"
 	"fmt"
 	"strings"
 
-	"github.com/Mirantis/terraform-provider-msr/mirantis/msr/client"
+	"github.com/Mirantis/terraform-provider-msr/internal/client"
 )
 
 const IdDelimiter = ":"
