@@ -15,7 +15,7 @@ func TestOrgResourceNoID(t *testing.T) {
 			{
 				Config: testOrgResource_noID(),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("msr_org", "name", "test"),
+					resource.TestCheckResourceAttr("msr_org.test", "name", "test"),
 				),
 			},
 		},

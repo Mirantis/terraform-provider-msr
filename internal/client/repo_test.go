@@ -39,7 +39,7 @@ func TestCreateValidRepo(t *testing.T) {
 	}
 	defer tc.server.Close()
 
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}
@@ -72,7 +72,7 @@ func TestCreateInvalidRepo(t *testing.T) {
 		expectedErr:      client.ErrEmptyResError,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}
@@ -101,7 +101,7 @@ func TestCreateEmptyRepo(t *testing.T) {
 		expectedErr:      client.ErrEmptyStruct,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}
@@ -130,7 +130,7 @@ func TestCreateRepoUnmarshalErr(t *testing.T) {
 		expectedErr:      client.ErrUnmarshaling,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}
@@ -158,7 +158,7 @@ func TestDeleteRepoSuccess(t *testing.T) {
 		expectedErr: nil,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}
@@ -182,7 +182,7 @@ func TestDeleteRepoFailed(t *testing.T) {
 		expectedErr: client.ErrUnmarshaling,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}
@@ -214,7 +214,7 @@ func TestReadRepoSuccess(t *testing.T) {
 		expectedErr:      nil,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}
@@ -242,7 +242,7 @@ func TestReadRepoFailed(t *testing.T) {
 		expectedErr:      client.ErrUnmarshaling,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}
@@ -278,7 +278,7 @@ func TestUpdateRepoSuccess(t *testing.T) {
 		expectedErr:      nil,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}
@@ -306,7 +306,7 @@ func TestUpdateRepoEmpty(t *testing.T) {
 		expectedErr:      client.ErrEmptyStruct,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}
@@ -334,7 +334,7 @@ func TestUpdateRepoFailed(t *testing.T) {
 		expectedErr:      client.ErrUnmarshaling,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}

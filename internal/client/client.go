@@ -23,6 +23,7 @@ type Client struct {
 	MsrURL     string
 	HTTPClient *http.Client
 	Creds      AuthStruct
+	TestMode   bool
 }
 
 // AuthStruct basicauth struct
@@ -42,17 +43,17 @@ type ResponseError struct {
 }
 
 // NewDefaultClient creates a new MSR SSL safe Client
-func NewDefaultClient(host, username, password string) (Client, error) {
+func NewDefaultClient(host, username, password string, testMode bool) (Client, error) {
 	if username == "" || password == "" || host == "" {
 		return Client{}, ErrEmptyClientArgs
 	}
 
-	return NewClient(username, password, host, &http.Client{})
+	return NewClient(username, password, host, testMode, &http.Client{})
 
 }
 
 // NewUnsafeSSLClient creates a new unsafe MSR HTTP Client
-func NewUnsafeSSLClient(host, username, password string) (Client, error) {
+func NewUnsafeSSLClient(host, username, password string, testMode bool) (Client, error) {
 	if username == "" || password == "" || host == "" {
 		return Client{}, ErrEmptyClientArgs
 	}
@@ -61,11 +62,11 @@ func NewUnsafeSSLClient(host, username, password string) (Client, error) {
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 
-	return NewClient(username, password, host, &http.Client{Transport: tr})
+	return NewClient(username, password, host, testMode, &http.Client{Transport: tr})
 }
 
 // NewClient creates a new MSR API Client from raw components
-func NewClient(username, password, MsrURL string, HTTPClient *http.Client) (Client, error) {
+func NewClient(username, password, MsrURL string, testMode bool, HTTPClient *http.Client) (Client, error) {
 	creds := AuthStruct{
 		Username: username,
 		Password: password,
@@ -74,6 +75,7 @@ func NewClient(username, password, MsrURL string, HTTPClient *http.Client) (Clie
 		HTTPClient: HTTPClient,
 		MsrURL:     MsrURL,
 		Creds:      creds,
+		TestMode:   testMode,
 	}, nil
 }
 

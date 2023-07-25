@@ -40,7 +40,7 @@ func TestCreateValidAccount(t *testing.T) {
 		expectedErr:      nil,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}
@@ -72,7 +72,7 @@ func TestCreateInvalidAccount(t *testing.T) {
 		expectedErr:      client.ErrEmptyResError,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}
@@ -101,7 +101,7 @@ func TestCreateAccountEmpty(t *testing.T) {
 		expectedErr:      client.ErrEmptyStruct,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}
@@ -130,7 +130,7 @@ func TestCreateAccountUnmarshalErr(t *testing.T) {
 		expectedErr:      client.ErrUnmarshaling,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}
@@ -158,7 +158,7 @@ func TestDeleteAccountSuccess(t *testing.T) {
 		expectedErr: nil,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}
@@ -182,7 +182,7 @@ func TestDeleteAccountFailed(t *testing.T) {
 		expectedErr: client.ErrUnmarshaling,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}
@@ -214,7 +214,7 @@ func TestReadAccountSuccess(t *testing.T) {
 		expectedErr:      nil,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}
@@ -242,7 +242,7 @@ func TestReadAccountFailed(t *testing.T) {
 		expectedErr:      client.ErrUnmarshaling,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}
@@ -277,7 +277,7 @@ func TestUpdateAccountSuccess(t *testing.T) {
 		expectedErr:      nil,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}
@@ -305,7 +305,7 @@ func TestUpdateAccountEmpty(t *testing.T) {
 		expectedErr:      client.ErrEmptyStruct,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}
@@ -333,7 +333,7 @@ func TestUpdateAccountFailed(t *testing.T) {
 		expectedErr:      client.ErrUnmarshaling,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}
@@ -376,7 +376,7 @@ func TestReadAccountsSuccess(t *testing.T) {
 		expectedErr: client.ErrUnmarshaling,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}
@@ -403,7 +403,7 @@ func TestReadAccountsFailed(t *testing.T) {
 		expectedErr: client.ErrUnmarshaling,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}

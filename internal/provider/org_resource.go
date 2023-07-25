@@ -23,8 +23,7 @@ type OrgResourceModel struct {
 }
 
 type OrgResource struct {
-	testingMode types.Bool
-	client      client.Client
+	client client.Client
 }
 
 func NewOrgResource() resource.Resource {
@@ -63,18 +62,15 @@ func (r *OrgResource) Configure(ctx context.Context, req resource.ConfigureReque
 	}
 
 	client, ok := req.ProviderData.(client.Client)
-
-	providerModel, ok := req.ProviderData.(*MSRProviderModel)
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *LaunchpadProviderModel, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			"Client error",
+			fmt.Sprintf("Expected client.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
 	}
 
-	r.testingMode = providerModel.TestingMode
 	r.client = client
 }
 
@@ -93,8 +89,9 @@ func (r *OrgResource) Create(ctx context.Context, req resource.CreateRequest, re
 		IsOrg: true,
 	}
 
-	if r.testingMode.ValueBool() {
+	if r.client.TestMode {
 		resp.Diagnostics.AddWarning("testing mode warning", "msr org resource handler is in testing mode, no creation will be run.")
+		orgData.Id = basetypes.NewStringValue("test")
 	} else {
 		rAcc, err := r.client.CreateAccount(ctx, acc)
 		if err != nil {
@@ -123,15 +120,17 @@ func (r *OrgResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		return
 	}
 
-	c := r.client
-
-	rAcc, err := c.ReadAccount(ctx, data.Name.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Client Error", err.Error())
-		return
+	if r.client.TestMode {
+		resp.Diagnostics.AddWarning("testing mode warning", "msr org resource handler is in testing mode, no read will be run.")
+		data.Name = types.StringValue("test")
+	} else {
+		rAcc, err := r.client.ReadAccount(ctx, data.Name.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError("Client Error", err.Error())
+			return
+		}
+		data.Name = types.StringValue(rAcc.Name)
 	}
-	data.Name = types.StringValue(rAcc.Name)
-
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -146,10 +145,9 @@ func (r *OrgResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	c := r.client
-
-	err := c.DeleteAccount(ctx, data.Name.ValueString())
-	if err != nil {
+	if r.client.TestMode {
+		resp.Diagnostics.AddWarning("testing mode warning", "msr org resource handler is in testing mode, no deletion will be run.")
+	} else if err := r.client.DeleteAccount(ctx, data.Name.ValueString()); err != nil {
 		resp.Diagnostics.AddError("Client Error", err.Error())
 		return
 	}

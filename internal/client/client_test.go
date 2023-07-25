@@ -35,7 +35,7 @@ func TestMSRClientHealthy(t *testing.T) {
 		expectedErr: nil,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create test client")
 	}
@@ -64,7 +64,7 @@ func TestMSRClientUnhealthy(t *testing.T) {
 		expectedErr:      nil,
 	}
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Error("couldn't create client new client")
 	}
@@ -107,7 +107,7 @@ func TestMSRClientBadrequest(t *testing.T) {
 	}
 
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Fatal("Couldn't create Client")
 	}
@@ -150,7 +150,7 @@ func TestMSRClientUnauthorized(t *testing.T) {
 	}
 
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Fatalf("Couldn't create client")
 	}
@@ -180,7 +180,7 @@ func TestDoRequestWrongErrorStruct(t *testing.T) {
 	}
 
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Fatalf("Couldn't create client")
 	}
@@ -208,7 +208,7 @@ func TestDoRequestWrongErrorStructField(t *testing.T) {
 	}
 
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "fakepass", true)
 	if err != nil {
 		t.Fatalf("Couldn't create client")
 	}
@@ -236,7 +236,7 @@ func TestEmptyUsernameField(t *testing.T) {
 	}
 
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "", "fakepass")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "", "fakepass", true)
 	if !reflect.DeepEqual(testClient, client.Client{}) {
 		t.Errorf("expected (%v), got (%v)", client.Client{}, testClient)
 	}
@@ -259,7 +259,7 @@ func TestEmptyPasswordField(t *testing.T) {
 	}
 
 	defer tc.server.Close()
-	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "")
+	testClient, err := client.NewDefaultClient(tc.server.URL, "fakeuser", "", true)
 	if !reflect.DeepEqual(testClient, client.Client{}) {
 		t.Errorf("expected (%v), got (%v)", client.Client{}, testClient)
 	}
