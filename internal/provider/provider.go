@@ -99,6 +99,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 const (
@@ -122,7 +123,7 @@ type MSRProviderModel struct {
 	Username        types.String `tfsdk:"username"`
 	Password        types.String `tfsdk:"password"`
 	UnsafeSSLClient types.Bool   `tfsdk:"unsafe_ssl_client"`
-	// TestingMode     types.Bool   `tfsdk:"testing_mode"`
+	TestingMode     types.Bool   `tfsdk:"testing_mode"`
 }
 
 func (p *MSRProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -150,6 +151,10 @@ func (p *MSRProvider) Schema(ctx context.Context, req provider.SchemaRequest, re
 				MarkdownDescription: "Use of unsafe SSL client",
 				Optional:            true,
 			},
+			"testing_mode": schema.BoolAttribute{
+				MarkdownDescription: "Used for testing purposes",
+				Optional:            true,
+			},
 		},
 	}
 }
@@ -163,14 +168,14 @@ func (p *MSRProvider) Configure(ctx context.Context, req provider.ConfigureReque
 		return
 	}
 
-	// if p.version == TestingVersion {
-	// 	data.TestingMode = defaults.
-	// }
+	if p.version == TestingVersion {
+		data.TestingMode = basetypes.NewBoolValue(true)
+	}
 
 	var c client.Client
 	var err error
 	if data.UnsafeSSLClient.ValueBool() {
-		c, err = client.NewUnsafeSSLClient(data.Username.String(), data.Password.String(), data.Host.String())
+		c, err = client.NewUnsafeSSLClient(data.Host.ValueString(), data.Username.ValueString(), data.Password.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Failed to create NewUnsafeSSLClient from terraform config",
@@ -180,7 +185,7 @@ func (p *MSRProvider) Configure(ctx context.Context, req provider.ConfigureReque
 			return
 		}
 	} else {
-		c, err = client.NewDefaultClient(data.Username.String(), data.Password.String(), data.Host.String())
+		c, err = client.NewDefaultClient(data.Host.ValueString(), data.Username.ValueString(), data.Password.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Failed to create NewDefaultClient from terraform config",

@@ -23,8 +23,8 @@ type OrgResourceModel struct {
 }
 
 type OrgResource struct {
-	// testingMode bool
-	client client.Client
+	testingMode types.Bool
+	client      client.Client
 }
 
 func NewOrgResource() resource.Resource {
@@ -32,7 +32,7 @@ func NewOrgResource() resource.Resource {
 }
 
 func (r *OrgResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_msr"
+	resp.TypeName = req.ProviderTypeName + "_org"
 }
 
 func (r *OrgResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -64,6 +64,7 @@ func (r *OrgResource) Configure(ctx context.Context, req resource.ConfigureReque
 
 	client, ok := req.ProviderData.(client.Client)
 
+	providerModel, ok := req.ProviderData.(*MSRProviderModel)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
@@ -73,6 +74,7 @@ func (r *OrgResource) Configure(ctx context.Context, req resource.ConfigureReque
 		return
 	}
 
+	r.testingMode = providerModel.TestingMode
 	r.client = client
 }
 
@@ -91,18 +93,22 @@ func (r *OrgResource) Create(ctx context.Context, req resource.CreateRequest, re
 		IsOrg: true,
 	}
 
-	rAcc, err := r.client.CreateAccount(ctx, acc)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Unexpected Create Account error",
-			err.Error(),
-		)
-		return
+	if r.testingMode.ValueBool() {
+		resp.Diagnostics.AddWarning("testing mode warning", "msr org resource handler is in testing mode, no creation will be run.")
+	} else {
+		rAcc, err := r.client.CreateAccount(ctx, acc)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Unexpected Create Account error",
+				err.Error(),
+			)
+			return
+		}
+
+		tflog.Trace(ctx, fmt.Sprintf("created a Org resource `%s`", orgData.Name.ValueString()))
+
+		orgData.Id = basetypes.NewStringValue(rAcc.ID)
 	}
-
-	tflog.Trace(ctx, fmt.Sprintf("created a Org resource `%s`", orgData.Name.ValueString()))
-
-	orgData.Id = basetypes.NewStringValue(rAcc.ID)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &orgData)...)
 }
