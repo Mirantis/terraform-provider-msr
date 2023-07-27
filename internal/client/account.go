@@ -132,9 +132,9 @@ func (c *Client) ReadAccount(ctx context.Context, id string) (ResponseAccount, e
 
 // UpdateAccount updates a user in the enzi endpoint
 func (c *Client) UpdateAccount(ctx context.Context, id string, acc UpdateAccount) (ResponseAccount, error) {
-	if (acc == UpdateAccount{}) {
-		return ResponseAccount{}, fmt.Errorf("updating account failed. %w: %+v", ErrEmptyStruct, acc)
-	}
+	// if (acc == UpdateAccount{}) {
+	// 	return ResponseAccount{}, fmt.Errorf("updating account failed. %w: %+v", ErrEmptyStruct, acc)
+	// }
 	url := fmt.Sprintf("%s/%s", c.createEnziUrl("accounts"), id)
 	body, err := json.Marshal(acc)
 	if err != nil {

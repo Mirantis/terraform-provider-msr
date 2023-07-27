@@ -1,145 +1,233 @@
 package provider
 
-// import (
-// 	"context"
-// 	"time"
+import (
+	"context"
+	"fmt"
 
-// 	"github.com/Mirantis/terraform-provider-msr/internal/client"
-// 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-// 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-// )
+	"github.com/Mirantis/terraform-provider-msr/internal/client"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+)
 
-// // ResourceUser for managing MSR user
-// func ResourceUser() *schema.Resource {
-// 	return &schema.Resource{
-// 		CreateContext: resourceUserCreate,
-// 		ReadContext:   resourceUserRead,
-// 		UpdateContext: resourceUserUpdate,
-// 		DeleteContext: resourceUserDelete,
-// 		Schema: map[string]*schema.Schema{
-// 			"name": {
-// 				Type:     schema.TypeString,
-// 				Required: true,
-// 			},
-// 			"full_name": {
-// 				Type:     schema.TypeString,
-// 				Optional: true,
-// 			},
-// 			"is_active": {
-// 				Type:     schema.TypeBool,
-// 				Optional: true,
-// 				Default:  true,
-// 			},
-// 			"is_admin": {
-// 				Type:     schema.TypeBool,
-// 				Optional: true,
-// 				Default:  false,
-// 			},
-// 			"last_updated": {
-// 				Type:     schema.TypeString,
-// 				Optional: true,
-// 				Computed: true,
-// 			},
-// 			"password": {
-// 				Type:     schema.TypeString,
-// 				Optional: true,
-// 				Computed: true,
-// 			},
-// 		},
-// 		Importer: &schema.ResourceImporter{
-// 			StateContext: schema.ImportStatePassthroughContext,
-// 		},
-// 	}
-// }
+var _ resource.Resource = &UserResource{}
 
-// func resourceUserCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-// 	c, ok := m.(client.Client)
-// 	if !ok {
-// 		return diag.Errorf("unable to cast meta interface to MSR Client")
-// 	}
+type UserResourceModel struct {
+	Name     types.String `tfsdk:"name"`
+	Password types.String `tfsdk:"password"`
+	FullName types.String `tfsdk:"full_name"`
+	IsAdmin  types.Bool   `tfsdk:"is_admin"`
+	Id       types.String `tfsdk:"id"`
+}
 
-// 	pass := d.Get("password").(string)
-// 	if pass == "" {
-// 		pass = client.GeneratePass()
-// 	}
+type UserResource struct {
+	client client.Client
+}
 
-// 	user := client.CreateAccount{
-// 		Name:       d.Get("name").(string),
-// 		Password:   pass,
-// 		FullName:   d.Get("full_name").(string),
-// 		IsActive:   d.Get("is_active").(bool),
-// 		IsAdmin:    d.Get("is_admin").(bool),
-// 		IsOrg:      false,
-// 		SearchLDAP: false,
-// 	}
-// 	u, err := c.CreateAccount(ctx, user)
-// 	if err != nil {
-// 		return diag.FromErr(err)
-// 	}
-// 	if err := d.Set("last_updated", time.Now().Format(time.RFC850)); err != nil {
-// 		return diag.FromErr(err)
-// 	}
-// 	if err := d.Set("password", user.Password); err != nil {
-// 		return diag.FromErr(err)
-// 	}
-// 	d.SetId(u.ID)
+func NewUserResource() resource.Resource {
+	return &UserResource{}
+}
 
-// 	return diag.Diagnostics{}
-// }
+func (r *UserResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_user"
+}
 
-// func resourceUserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-// 	c, ok := m.(client.Client)
-// 	if !ok {
-// 		return diag.Errorf("unable to cast meta interface to MSR Client")
-// 	}
+func (r *UserResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		// This description is used by the documentation generator and the language server.
 
-// 	u, err := c.ReadAccount(ctx, d.State().ID)
-// 	if err != nil {
-// 		// If the user doesn't exist we should gracefully handle it
-// 		d.SetId("")
-// 		return diag.FromErr(err)
-// 	}
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Identifier",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"name": schema.StringAttribute{
+				MarkdownDescription: "The name of the user",
+				Required:            true,
+			},
+			"password": schema.StringAttribute{
+				MarkdownDescription: "The password of the user",
+				Required:            true,
+				Sensitive:           true,
+			},
+			"full_name": schema.StringAttribute{
+				MarkdownDescription: "The full name of the user",
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
+			},
+			"is_admin": schema.BoolAttribute{
+				MarkdownDescription: "Is the user an admin",
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
+				Optional:            true,
+			},
+		},
+		MarkdownDescription: "User resource",
+	}
+}
 
-// 	d.SetId(u.ID)
+func (r *UserResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	// Prevent panic if the provider has not been configured.
+	if req.ProviderData == nil {
+		return
+	}
 
-// 	return diag.Diagnostics{}
-// }
+	client, ok := req.ProviderData.(client.Client)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Client error",
+			fmt.Sprintf("Expected client.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
 
-// func resourceUserUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-// 	c, ok := m.(client.Client)
+		return
+	}
 
-// 	if !ok {
-// 		return diag.Errorf("unable to cast meta interface to MSR Client")
-// 	}
-// 	if d.HasChange("msr_user") {
-// 		user := client.UpdateAccount{
-// 			FullName: d.Get("full_name").(string),
-// 			IsActive: d.Get("is_active").(bool),
-// 			IsAdmin:  d.Get("is_admin").(bool),
-// 		}
-// 		if _, err := c.UpdateAccount(ctx, d.State().ID, user); err != nil {
-// 			return diag.FromErr(err)
-// 		}
-// 		if err := d.Set("last_updated", time.Now().Format(time.RFC850)); err != nil {
-// 			return diag.FromErr(err)
-// 		}
-// 	}
-// 	return resourceUserRead(ctx, d, m)
-// }
+	r.client = client
+}
 
-// func resourceUserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-// 	c, ok := m.(client.Client)
+func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *UserResourceModel
 
-// 	if !ok {
-// 		return diag.Errorf("unable to cast meta interface to MSR Client")
-// 	}
-// 	if err := c.DeleteAccount(ctx, d.State().ID); err != nil {
-// 		return diag.FromErr(err)
-// 	}
+	// Read Terraform plan data into the model
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-// 	// d.SetId("") is automatically called assuming delete returns no errors, but
-// 	// it is added here for explicitness.
-// 	d.SetId("")
+	pass := data.Password.ValueString()
+	if pass == "" {
+		pass = client.GeneratePass()
+		data.Password = basetypes.NewStringValue(pass)
+	}
 
-// 	return diag.Diagnostics{}
-// }
+	acc := client.CreateAccount{
+		Name:       data.Name.ValueString(),
+		Password:   pass,
+		FullName:   data.FullName.ValueString(),
+		IsAdmin:    data.IsAdmin.ValueBool(),
+		IsOrg:      false,
+		SearchLDAP: false,
+	}
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if r.client.TestMode {
+		resp.Diagnostics.AddWarning("testing mode warning", "msr user resource handler is in testing mode, no creation will be run.")
+		data.Id = basetypes.NewStringValue(TestingVersion)
+	} else {
+		rAcc, err := r.client.CreateAccount(ctx, acc)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Unexpected Create Account error",
+				err.Error(),
+			)
+			return
+		}
+
+		tflog.Trace(ctx, fmt.Sprintf("created User resource `%s`", data.Name.ValueString()))
+
+		data.Id = basetypes.NewStringValue(rAcc.ID)
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (r *UserResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	tflog.Debug(ctx, "Preparing to read user resource")
+	var data *UserResourceModel
+
+	// Read Terraform prior state data into the model
+	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if r.client.TestMode {
+		resp.Diagnostics.AddWarning("testing mode warning", "msr user resource handler is in testing mode, no read will be run.")
+		data.Id = types.StringValue(TestingVersion)
+	} else {
+		rAcc, err := r.client.ReadAccount(ctx, data.Name.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError("Client Error", err.Error())
+			return
+		}
+		data.Id = types.StringValue(rAcc.ID)
+		data.Name = types.StringValue(rAcc.Name)
+		data.FullName = types.StringValue(rAcc.FullName)
+		data.IsAdmin = types.BoolValue(rAcc.IsAdmin)
+	}
+
+	// Save updated data into Terraform state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (r *UserResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	tflog.Debug(ctx, "Preparing to update user resource")
+
+	var data *UserResourceModel
+
+	// Read Terraform prior state data into the model
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if r.client.TestMode {
+		resp.Diagnostics.AddWarning("testing mode warning", "msr user resource handler is in testing mode, no update will be run.")
+		data.Id = types.StringValue(TestingVersion)
+	} else {
+		user := client.UpdateAccount{
+			FullName: data.FullName.ValueString(),
+			IsAdmin:  data.IsAdmin.ValueBool(),
+		}
+		rAcc, err := r.client.UpdateAccount(ctx, data.Id.ValueString(), user)
+		tflog.Debug(ctx, fmt.Sprintf("The retuerned 'user' %+v", rAcc))
+
+		if err != nil {
+			resp.Diagnostics.AddError("Client Error", err.Error())
+			return
+		}
+
+		// Overwrite items with refreshed state
+		data.Id = types.StringValue(rAcc.ID)
+		data.Name = types.StringValue(rAcc.Name)
+		data.FullName = types.StringValue(rAcc.FullName)
+		data.IsAdmin = types.BoolValue(rAcc.IsAdmin)
+	}
+
+	// Set refreshed state
+	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
+	tflog.Debug(ctx, "Updated 'user' resource", map[string]any{"success": true})
+}
+
+func (r *UserResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *UserResourceModel
+
+	// Read Terraform prior state data into the model
+	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+
+	if r.client.TestMode {
+		resp.Diagnostics.AddWarning("testing mode warning", "msr user resource handler is in testing mode, no deletion will be run.")
+	} else if err := r.client.DeleteAccount(ctx, data.Id.ValueString()); err != nil {
+		resp.Diagnostics.AddError("Client Error", err.Error())
+		return
+	}
+
+	tflog.Debug(ctx, "Deleted item resource", map[string]any{"success": true})
+}
+
+func (r *UserResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
+}

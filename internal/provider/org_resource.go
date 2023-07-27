@@ -91,7 +91,7 @@ func (r *OrgResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	if r.client.TestMode {
 		resp.Diagnostics.AddWarning("testing mode warning", "msr org resource handler is in testing mode, no creation will be run.")
-		orgData.Id = basetypes.NewStringValue("test")
+		orgData.Id = basetypes.NewStringValue(TestingVersion)
 	} else {
 		rAcc, err := r.client.CreateAccount(ctx, acc)
 		if err != nil {
@@ -111,6 +111,8 @@ func (r *OrgResource) Create(ctx context.Context, req resource.CreateRequest, re
 }
 
 func (r *OrgResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	tflog.Debug(ctx, "Preparing to read org resource")
+
 	var data *OrgResourceModel
 
 	// Read Terraform prior state data into the model
@@ -122,7 +124,7 @@ func (r *OrgResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 
 	if r.client.TestMode {
 		resp.Diagnostics.AddWarning("testing mode warning", "msr org resource handler is in testing mode, no read will be run.")
-		data.Name = types.StringValue("test")
+		data.Id = types.StringValue(TestingVersion)
 	} else {
 		rAcc, err := r.client.ReadAccount(ctx, data.Name.ValueString())
 		if err != nil {
@@ -130,13 +132,16 @@ func (r *OrgResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 			return
 		}
 		data.Name = types.StringValue(rAcc.Name)
+		data.Id = types.StringValue(rAcc.ID)
 	}
+
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *OrgResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Can't really update Org resource
+	tflog.Trace(ctx, "No action taken. Org resourcs can't be updated.")
 }
 
 func (r *OrgResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {

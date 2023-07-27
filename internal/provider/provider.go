@@ -198,6 +198,7 @@ func (p *MSRProvider) Configure(ctx context.Context, req provider.ConfigureReque
 func (p *MSRProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewOrgResource,
+		NewUserResource,
 	}
 }
 
