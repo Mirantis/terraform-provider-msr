@@ -163,7 +163,7 @@ func TestDeleteRepoSuccess(t *testing.T) {
 		t.Error("couldn't create test client")
 	}
 	ctx := context.Background()
-	err = testClient.DeleteRepo(ctx, "fakename")
+	err = testClient.DeleteRepo(ctx, "fakeorg", "fakename")
 
 	if !errors.Is(err, tc.expectedErr) {
 		t.Errorf("expected error: (%v),\n got (%v)", tc.expectedErr, err)

@@ -123,8 +123,8 @@ func (c *Client) UpdateRepo(ctx context.Context, orgName string, repoName string
 }
 
 // DeleteRepo deletes a repo from MSR
-func (c *Client) DeleteRepo(ctx context.Context, repoName string) error {
-	url := fmt.Sprintf("%s/%s", c.createMsrUrl("repositories"), repoName)
+func (c *Client) DeleteRepo(ctx context.Context, orgName string, repoName string) error {
+	url := fmt.Sprintf("%s/%s/%s", c.createMsrUrl("repositories"), orgName, repoName)
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
 
 	if err != nil {

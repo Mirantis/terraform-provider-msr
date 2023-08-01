@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -100,52 +99,52 @@ func (r *TeamResource) Configure(ctx context.Context, req resource.ConfigureRequ
 func (r *TeamResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data *TeamResourceModel
 
-	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	// // Read Terraform plan data into the model
+	// resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-	team := client.Team{
-		OrgID:       data.OrgID.ValueString(),
-		Description: data.Description.ValueString(),
-		Name:        data.Name.ValueString(),
-	}
+	// team := client.Team{
+	// 	OrgID:       data.OrgID.ValueString(),
+	// 	Description: data.Description.ValueString(),
+	// 	Name:        data.Name.ValueString(),
+	// }
 
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	// if resp.Diagnostics.HasError() {
+	// 	return
+	// }
 
-	if r.client.TestMode {
-		resp.Diagnostics.AddWarning("testing mode warning", "msr team resource handler is in testing mode, no creation will be run.")
-		data.Id = basetypes.NewStringValue(TestingVersion)
-	} else {
-		rTeam, err := r.client.CreateTeam(ctx, data.OrgID.ValueString(), team)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Unexpected Create Team error",
-				err.Error(),
-			)
-			return
-		}
+	// if r.client.TestMode {
+	// 	resp.Diagnostics.AddWarning("testing mode warning", "msr team resource handler is in testing mode, no creation will be run.")
+	// 	data.Id = basetypes.NewStringValue(TestingVersion)
+	// } else {
+	// 	rTeam, err := r.client.CreateTeam(ctx, data.OrgID.ValueString(), team)
+	// 	if err != nil {
+	// 		resp.Diagnostics.AddError(
+	// 			"Unexpected Create Team error",
+	// 			err.Error(),
+	// 		)
+	// 		return
+	// 	}
 
-		tflog.Trace(ctx, fmt.Sprintf("created Team resource `%s`", data.Name.ValueString()))
-		data.Id = basetypes.NewStringValue(rTeam.ID)
+	// 	tflog.Trace(ctx, fmt.Sprintf("created Team resource `%s`", data.Name.ValueString()))
+	// 	data.Id = basetypes.NewStringValue(rTeam.ID)
 
-		var usersSlice []string
-		data.UserIDs.ElementsAs(ctx, usersSlice, false)
+	// 	var usersSlice []string
+	// 	data.UserIDs.ElementsAs(ctx, usersSlice, false)
 
-		for _, id := range usersSlice {
-			u := client.ResponseAccount{
-				ID: id,
-			}
-			if err := r.client.AddUserToTeam(ctx, data.OrgID.ValueString(), data.Id.ValueString(), u); err != nil {
-				resp.Diagnostics.AddError(
-					"Unexpected AddUserToTeam error",
-					err.Error(),
-				)
-				return
-			}
-			tflog.Trace(ctx, fmt.Sprintf("added user `%s` to team `%s`", id, data.Name.ValueString()))
-		}
-	}
+	// 	for _, id := range usersSlice {
+	// 		u := client.ResponseAccount{
+	// 			ID: id,
+	// 		}
+	// 		if err := r.client.AddUserToTeam(ctx, data.OrgID.ValueString(), data.Id.ValueString(), u); err != nil {
+	// 			resp.Diagnostics.AddError(
+	// 				"Unexpected AddUserToTeam error",
+	// 				err.Error(),
+	// 			)
+	// 			return
+	// 		}
+	// 		tflog.Trace(ctx, fmt.Sprintf("added user `%s` to team `%s`", id, data.Name.ValueString()))
+	// 	}
+	// }
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -155,29 +154,29 @@ func (r *TeamResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	var data *TeamResourceModel
 
 	// Read Terraform prior state data into the model
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	// resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	// if resp.Diagnostics.HasError() {
+	// 	return
+	// }
 
-	if r.client.TestMode {
-		resp.Diagnostics.AddWarning("testing mode warning", "msr team resource handler is in testing mode, no read will be run.")
-		data.Id = types.StringValue(TestingVersion)
-	} else {
-		t, err := r.client.ReadTeam(ctx, data.OrgID.ValueString(), data.Name.ValueString())
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Unexpected ReadTeam error",
-				err.Error(),
-			)
-			return
-		}
-		data.Id = types.StringValue(t.ID)
-		data.Name = types.StringValue(t.Name)
-		data.OrgID = types.StringValue(t.OrgID)
-		data.Description = types.StringValue(t.Description)
-	}
+	// if r.client.TestMode {
+	// 	resp.Diagnostics.AddWarning("testing mode warning", "msr team resource handler is in testing mode, no read will be run.")
+	// 	data.Id = types.StringValue(TestingVersion)
+	// } else {
+	// 	t, err := r.client.ReadTeam(ctx, data.OrgID.ValueString(), data.Name.ValueString())
+	// 	if err != nil {
+	// 		resp.Diagnostics.AddError(
+	// 			"Unexpected ReadTeam error",
+	// 			err.Error(),
+	// 		)
+	// 		return
+	// 	}
+	// 	data.Id = types.StringValue(t.ID)
+	// 	data.Name = types.StringValue(t.Name)
+	// 	data.OrgID = types.StringValue(t.OrgID)
+	// 	data.Description = types.StringValue(t.Description)
+	// }
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -189,39 +188,39 @@ func (r *TeamResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	var data *TeamResourceModel
 
 	// Read Terraform prior state data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	// resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	// if resp.Diagnostics.HasError() {
+	// 	return
+	// }
 
-	if r.client.TestMode {
-		resp.Diagnostics.AddWarning("testing mode warning", "msr team resource handler is in testing mode, no update will be run.")
-		data.Id = types.StringValue(TestingVersion)
-	} else {
-		team := client.Team{
-			ID:          data.Id.ValueString(),
-			Description: data.Description.ValueString(),
-		}
-		rTeam, err := r.client.UpdateTeam(ctx, data.OrgID.ValueString(), team)
-		if err != nil {
-			resp.Diagnostics.AddError("Client Error", err.Error())
-			return
-		}
+	// if r.client.TestMode {
+	// 	resp.Diagnostics.AddWarning("testing mode warning", "msr team resource handler is in testing mode, no update will be run.")
+	// 	data.Id = types.StringValue(TestingVersion)
+	// } else {
+	// 	team := client.Team{
+	// 		ID:          data.Id.ValueString(),
+	// 		Description: data.Description.ValueString(),
+	// 	}
+	// 	rTeam, err := r.client.UpdateTeam(ctx, data.OrgID.ValueString(), team)
+	// 	if err != nil {
+	// 		resp.Diagnostics.AddError("Client Error", err.Error())
+	// 		return
+	// 	}
 
-		// Overwrite items with refreshed state
-		data.Id = types.StringValue(rTeam.ID)
-		data.Name = types.StringValue(rTeam.Name)
-		data.Description = types.StringValue(rTeam.Description)
+	// 	// Overwrite items with refreshed state
+	// 	data.Id = types.StringValue(rTeam.ID)
+	// 	data.Name = types.StringValue(rTeam.Name)
+	// 	data.Description = types.StringValue(rTeam.Description)
 
-		var users []string
-		data.UserIDs.ElementsAs(ctx, users, false)
-		if err := r.client.UpdateTeamUsers(ctx, data.OrgID.ValueString(), data.Id.ValueString(), users); err != nil {
-			resp.Diagnostics.AddError("Client Error", err.Error())
-			return
-		}
-		tflog.Debug(ctx, fmt.Sprintf("Updated the users of the %s/%s team", data.OrgID, data.Name), map[string]any{"success": true})
-	}
+	// 	var users []string
+	// 	data.UserIDs.ElementsAs(ctx, users, false)
+	// 	if err := r.client.UpdateTeamUsers(ctx, data.OrgID.ValueString(), data.Id.ValueString(), users); err != nil {
+	// 		resp.Diagnostics.AddError("Client Error", err.Error())
+	// 		return
+	// 	}
+	// 	tflog.Debug(ctx, fmt.Sprintf("Updated the users of the %s/%s team", data.OrgID, data.Name), map[string]any{"success": true})
+	// }
 
 	// Set refreshed state
 	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
@@ -234,12 +233,12 @@ func (r *TeamResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	if r.client.TestMode {
-		resp.Diagnostics.AddWarning("testing mode warning", "msr user resource handler is in testing mode, no deletion will be run.")
-	} else if err := r.client.DeleteTeam(ctx, data.OrgID.ValueString(), data.Id.ValueString()); err != nil {
-		resp.Diagnostics.AddError("Client Error", err.Error())
-		return
-	}
+	// if r.client.TestMode {
+	// 	resp.Diagnostics.AddWarning("testing mode warning", "msr user resource handler is in testing mode, no deletion will be run.")
+	// } else if err := r.client.DeleteTeam(ctx, data.OrgID.ValueString(), data.Id.ValueString()); err != nil {
+	// 	resp.Diagnostics.AddError("Client Error", err.Error())
+	// 	return
+	// }
 
 	tflog.Debug(ctx, "Deleted team resource", map[string]any{"success": true})
 }
