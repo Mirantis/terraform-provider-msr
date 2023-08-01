@@ -1,171 +1,262 @@
 package provider
 
-// import (
-// 	"context"
-// 	"time"
+import (
+	"context"
+	"fmt"
 
-// 	"github.com/Mirantis/terraform-provider-msr/internal/client"
-// 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-// 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-// )
+	"github.com/Mirantis/terraform-provider-msr/internal/client"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+)
 
-// // ResourceTeam for managing MSR team
-// func ResourceTeam() *schema.Resource {
-// 	return &schema.Resource{
-// 		CreateContext: resourceTeamCreate,
-// 		ReadContext:   resourceTeamRead,
-// 		UpdateContext: resourceTeamUpdate,
-// 		DeleteContext: resourceTeamDelete,
-// 		Schema: map[string]*schema.Schema{
-// 			"name": {
-// 				Type:     schema.TypeString,
-// 				Required: true,
-// 			},
-// 			"org_id": {
-// 				Type:     schema.TypeString,
-// 				Required: true,
-// 			},
-// 			"description": {
-// 				Type:     schema.TypeString,
-// 				Optional: true,
-// 			},
-// 			"user_ids": {
-// 				Type:     schema.TypeList,
-// 				Optional: true,
-// 				Elem: &schema.Schema{
-// 					Type: schema.TypeString,
-// 				},
-// 			},
-// 			"last_updated": {
-// 				Type:     schema.TypeString,
-// 				Optional: true,
-// 				Computed: true,
-// 			},
-// 		},
-// 		Importer: &schema.ResourceImporter{
-// 			StateContext: schema.ImportStatePassthroughContext,
-// 		},
-// 	}
-// }
+var _ resource.Resource = &TeamResource{}
 
-// func resourceTeamCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-// 	c, ok := m.(client.Client)
-// 	if !ok {
-// 		return diag.Errorf("unable to cast meta interface to MSR Client")
-// 	}
+type TeamResourceModel struct {
+	Name        types.String `tfsdk:"name"`
+	OrgID       types.String `tfsdk:"org_id"`
+	Description types.String `tfsdk:"description"`
+	UserIDs     types.List   `tfsdk:"user_ids"`
+	Id          types.String `tfsdk:"id"`
+}
 
-// 	team := client.Team{
-// 		Name:        d.Get("name").(string),
-// 		Description: d.Get("description").(string),
-// 	}
-// 	t, err := c.CreateTeam(ctx, d.Get("org_id").(string), team)
-// 	if err != nil {
-// 		return diag.FromErr(err)
-// 	}
-// 	if err := d.Set("last_updated", time.Now().Format(time.RFC850)); err != nil {
-// 		return diag.FromErr(err)
-// 	}
+type TeamResource struct {
+	client client.Client
+}
 
-// 	d.SetId(CreateResourceID(ctx, d.Get("org_id").(string), t.Name))
+func NewTeamResource() resource.Resource {
+	return &TeamResource{}
+}
 
-// 	for _, id := range d.Get("user_ids").([]interface{}) {
-// 		u := client.ResponseAccount{
-// 			ID: id.(string),
-// 		}
-// 		if err := c.AddUserToTeam(ctx, d.Get("org_id").(string), t.ID, u); err != nil {
-// 			return diag.FromErr(err)
-// 		}
-// 	}
+func (r *TeamResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_team"
 
-// 	return diag.Diagnostics{}
-// }
+}
 
-// func resourceTeamRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-// 	c, ok := m.(client.Client)
-// 	if !ok {
-// 		return diag.Errorf("unable to cast meta interface to MSR Client")
-// 	}
+func (r *TeamResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		// This description is used by the documentation generator and the language server.
 
-// 	orgID, teamID, err := ExtractResourceIDs(ctx, d.State().ID)
-// 	if err != nil {
-// 		d.SetId("")
-// 		return diag.FromErr(err)
-// 	}
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Identifier",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"name": schema.StringAttribute{
+				MarkdownDescription: "The name of the team",
+				Required:            true,
+			},
+			"org_id": schema.StringAttribute{
+				MarkdownDescription: "The organization id for the team",
+				Required:            true,
+			},
+			"description": schema.StringAttribute{
+				MarkdownDescription: "Description of the team",
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
+			},
+			"user_ids": schema.ListAttribute{
+				MarkdownDescription: "The user ids belonging to the team",
+				ElementType:         types.StringType,
+				Optional:            true,
+				Computed:            true,
+				Default:             listdefault.StaticValue(types.ListNull(types.StringType)),
+			},
+		},
+		MarkdownDescription: "Team resource",
+	}
+}
 
-// 	t, err := c.ReadTeam(ctx, orgID, teamID)
-// 	if err != nil {
-// 		// If the user doesn't exist we should gracefully handle it
-// 		d.SetId("")
-// 		return diag.FromErr(err)
-// 	}
+func (r *TeamResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	// Prevent panic if the provider has not been configured.
+	if req.ProviderData == nil {
+		return
+	}
 
-// 	d.SetId(CreateResourceID(ctx, t.OrgID, t.Name))
+	client, ok := req.ProviderData.(client.Client)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Client error",
+			fmt.Sprintf("Expected client.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
 
-// 	return diag.Diagnostics{}
-// }
+		return
+	}
 
-// func resourceTeamUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-// 	c, ok := m.(client.Client)
+	r.client = client
+}
 
-// 	if !ok {
-// 		return diag.Errorf("unable to cast meta interface to MSR Client")
-// 	}
+func (r *TeamResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *TeamResourceModel
 
-// 	orgID, teamID, err := ExtractResourceIDs(ctx, d.State().ID)
-// 	if err != nil {
-// 		d.SetId("")
-// 		return diag.FromErr(err)
-// 	}
+	// Read Terraform plan data into the model
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-// 	team := client.Team{
-// 		ID:          teamID,
-// 		Description: d.Get("description").(string),
-// 	}
+	team := client.Team{
+		OrgID:       data.OrgID.ValueString(),
+		Description: data.Description.ValueString(),
+		Name:        data.Name.ValueString(),
+	}
 
-// 	if err != nil {
-// 		d.SetId("")
-// 		return diag.FromErr(err)
-// 	}
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-// 	if d.HasChange("description") {
-// 		if _, err := c.UpdateTeam(ctx, orgID, team); err != nil {
-// 			return diag.FromErr(err)
-// 		}
-// 	}
+	if r.client.TestMode {
+		resp.Diagnostics.AddWarning("testing mode warning", "msr team resource handler is in testing mode, no creation will be run.")
+		data.Id = basetypes.NewStringValue(TestingVersion)
+	} else {
+		rTeam, err := r.client.CreateTeam(ctx, data.OrgID.ValueString(), team)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Unexpected Create Team error",
+				err.Error(),
+			)
+			return
+		}
 
-// 	if d.HasChange("user_ids") {
-// 		_, n := d.GetChange("user_ids")
-// 		if err := c.UpdateTeamUsers(ctx, orgID, team.ID, n.([]interface{})); err != nil {
-// 			return diag.FromErr(err)
-// 		}
-// 	}
+		tflog.Trace(ctx, fmt.Sprintf("created Team resource `%s`", data.Name.ValueString()))
+		data.Id = basetypes.NewStringValue(rTeam.ID)
 
-// 	if err := d.Set("last_updated", time.Now().Format(time.RFC850)); err != nil {
-// 		return diag.FromErr(err)
-// 	}
-// 	return resourceTeamRead(ctx, d, m)
-// }
+		var usersSlice []string
+		data.UserIDs.ElementsAs(ctx, usersSlice, false)
 
-// func resourceTeamDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-// 	c, ok := m.(client.Client)
+		for _, id := range usersSlice {
+			u := client.ResponseAccount{
+				ID: id,
+			}
+			if err := r.client.AddUserToTeam(ctx, data.OrgID.ValueString(), data.Id.ValueString(), u); err != nil {
+				resp.Diagnostics.AddError(
+					"Unexpected AddUserToTeam error",
+					err.Error(),
+				)
+				return
+			}
+			tflog.Trace(ctx, fmt.Sprintf("added user `%s` to team `%s`", id, data.Name.ValueString()))
+		}
+	}
 
-// 	if !ok {
-// 		return diag.Errorf("unable to cast meta interface to MSR Client")
-// 	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
 
-// 	orgID, teamID, err := ExtractResourceIDs(ctx, d.State().ID)
-// 	if err != nil {
-// 		d.SetId("")
-// 		return diag.FromErr(err)
-// 	}
+func (r *TeamResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	tflog.Debug(ctx, "Preparing to read team resource")
+	var data *TeamResourceModel
 
-// 	if err := c.DeleteTeam(ctx, orgID, teamID); err != nil {
-// 		return diag.FromErr(err)
-// 	}
+	// Read Terraform prior state data into the model
+	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-// 	// d.SetId("") is automatically called assuming delete returns no errors, but
-// 	// it is added here for explicitness.
-// 	d.SetId("")
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-// 	return diag.Diagnostics{}
-// }
+	if r.client.TestMode {
+		resp.Diagnostics.AddWarning("testing mode warning", "msr team resource handler is in testing mode, no read will be run.")
+		data.Id = types.StringValue(TestingVersion)
+	} else {
+		t, err := r.client.ReadTeam(ctx, data.OrgID.ValueString(), data.Name.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Unexpected ReadTeam error",
+				err.Error(),
+			)
+			return
+		}
+		data.Id = types.StringValue(t.ID)
+		data.Name = types.StringValue(t.Name)
+		data.OrgID = types.StringValue(t.OrgID)
+		data.Description = types.StringValue(t.Description)
+	}
+
+	// Save updated data into Terraform state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (r *TeamResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	tflog.Debug(ctx, "Preparing to update team resource")
+
+	var data *TeamResourceModel
+
+	// Read Terraform prior state data into the model
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if r.client.TestMode {
+		resp.Diagnostics.AddWarning("testing mode warning", "msr team resource handler is in testing mode, no update will be run.")
+		data.Id = types.StringValue(TestingVersion)
+	} else {
+		team := client.Team{
+			ID:          data.Id.ValueString(),
+			Description: data.Description.ValueString(),
+		}
+		rTeam, err := r.client.UpdateTeam(ctx, data.OrgID.ValueString(), team)
+		if err != nil {
+			resp.Diagnostics.AddError("Client Error", err.Error())
+			return
+		}
+
+		// Overwrite items with refreshed state
+		data.Id = types.StringValue(rTeam.ID)
+		data.Name = types.StringValue(rTeam.Name)
+		data.Description = types.StringValue(rTeam.Description)
+
+		var users []string
+		data.UserIDs.ElementsAs(ctx, users, false)
+		if err := r.client.UpdateTeamUsers(ctx, data.OrgID.ValueString(), data.Id.ValueString(), users); err != nil {
+			resp.Diagnostics.AddError("Client Error", err.Error())
+			return
+		}
+		tflog.Debug(ctx, fmt.Sprintf("Updated the users of the %s/%s team", data.OrgID, data.Name), map[string]any{"success": true})
+	}
+
+	// Set refreshed state
+	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
+	tflog.Debug(ctx, "Updated 'team' resource", map[string]any{"success": true})
+}
+
+func (r *TeamResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *TeamResourceModel
+
+	// Read Terraform prior state data into the model
+	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+
+	if r.client.TestMode {
+		resp.Diagnostics.AddWarning("testing mode warning", "msr user resource handler is in testing mode, no deletion will be run.")
+	} else if err := r.client.DeleteTeam(ctx, data.OrgID.ValueString(), data.Id.ValueString()); err != nil {
+		resp.Diagnostics.AddError("Client Error", err.Error())
+		return
+	}
+
+	tflog.Debug(ctx, "Deleted team resource", map[string]any{"success": true})
+}
+
+func (r *TeamResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
+
+	// idParts := strings.Split(req.ID, ",")
+
+	// if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+	// 	resp.Diagnostics.AddError(
+	// 		"Unexpected Import Identifier",
+	// 		fmt.Sprintf("Expected import identifier with format: org_id,team_name. Got: %q", req.ID),
+	// 	)
+	// 	return
+	// }
+
+	// resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("org_id"), idParts[0])...)
+	// resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[1])...)
+}

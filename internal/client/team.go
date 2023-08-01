@@ -178,7 +178,7 @@ func (c *Client) DeleteUserFromTeam(ctx context.Context, orgID string, teamID st
 }
 
 // UpdateTeamUsers updates a team user base to match the latest state defined by Terraform
-func (c *Client) UpdateTeamUsers(ctx context.Context, orgID string, teamID string, newUsers []interface{}) error {
+func (c *Client) UpdateTeamUsers(ctx context.Context, orgID string, teamID string, newUsers []string) error {
 
 	tUsers, err := c.GetTeamUsers(ctx, orgID, teamID)
 	if err != nil {
@@ -192,7 +192,7 @@ func (c *Client) UpdateTeamUsers(ctx context.Context, orgID string, teamID strin
 
 	for _, u := range newUsers {
 		a := ResponseAccount{
-			ID: u.(string),
+			ID: u,
 		}
 		// Log the failure in the future if you fail to add an user to a team
 		if err := c.AddUserToTeam(ctx, orgID, teamID, a); err != nil {
