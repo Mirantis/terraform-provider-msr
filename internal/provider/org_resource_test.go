@@ -17,6 +17,7 @@ func TestOrgResource(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("msr_org.test", "name", TestingVersion),
 					resource.TestCheckResourceAttr("msr_org.test", "id", TestingVersion),
+					resource.TestCheckResourceAttrSet("msr_org.test", "id"),
 				),
 			},
 			// ImportState testing

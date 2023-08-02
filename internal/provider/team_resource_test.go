@@ -18,6 +18,7 @@ func TestTeamResourceDefault(t *testing.T) {
 					resource.TestCheckResourceAttr("msr_team.test", "name", TestingVersion),
 					resource.TestCheckResourceAttr("msr_team.test", "org_id", TestingVersion),
 					resource.TestCheckResourceAttr("msr_team.test", "description", TestingVersion),
+					resource.TestCheckResourceAttrSet("msr_team.test", "id"),
 				),
 			},
 			// ImportState testing
@@ -38,6 +39,7 @@ func TestTeamResourceDefault(t *testing.T) {
 					resource.TestCheckResourceAttr("msr_team.test", "name", "blah"),
 					resource.TestCheckResourceAttr("msr_team.test", "org_id", "blah"),
 					resource.TestCheckResourceAttr("msr_team.test", "description", "blah"),
+					resource.TestCheckResourceAttrSet("msr_team.test", "id"),
 				),
 			},
 		},

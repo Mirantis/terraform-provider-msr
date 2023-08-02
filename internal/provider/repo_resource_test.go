@@ -19,6 +19,7 @@ func TestRepoResourceDefault(t *testing.T) {
 					resource.TestCheckResourceAttr("msr_repo.test", "org_name", TestingVersion),
 					resource.TestCheckResourceAttr("msr_repo.test", "visibility", "private"),
 					resource.TestCheckResourceAttr("msr_repo.test", "scan_on_push", "false"),
+					resource.TestCheckResourceAttrSet("msr_repo.test", "id"),
 				),
 			},
 			// Create and Read testing
@@ -29,6 +30,7 @@ func TestRepoResourceDefault(t *testing.T) {
 					resource.TestCheckResourceAttr("msr_repo.test", "org_name", TestingVersion),
 					resource.TestCheckResourceAttr("msr_repo.test", "visibility", "public"),
 					resource.TestCheckResourceAttr("msr_repo.test", "scan_on_push", "true"),
+					resource.TestCheckResourceAttrSet("msr_repo.test", "id"),
 				),
 			},
 			// ImportState testing

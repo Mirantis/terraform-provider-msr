@@ -19,6 +19,7 @@ func TestUserResourceDefault(t *testing.T) {
 					resource.TestCheckResourceAttr("msr_user.test", "password", TestingVersion),
 					resource.TestCheckResourceAttr("msr_user.test", "full_name", TestingVersion),
 					resource.TestCheckResourceAttr("msr_user.test", "is_admin", "false"),
+					resource.TestCheckResourceAttrSet("msr_user.test", "id"),
 				),
 			},
 			// ImportState testing
@@ -39,6 +40,7 @@ func TestUserResourceDefault(t *testing.T) {
 					resource.TestCheckResourceAttr("msr_user.test", "password", "blah"),
 					resource.TestCheckResourceAttr("msr_user.test", "full_name", "blah"),
 					resource.TestCheckResourceAttr("msr_user.test", "is_admin", "false"),
+					resource.TestCheckResourceAttrSet("msr_user.test", "id"),
 				),
 			},
 			// Delete is called implicitly

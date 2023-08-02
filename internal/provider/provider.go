@@ -118,8 +118,7 @@ func (p *MSRProvider) Resources(ctx context.Context) []func() resource.Resource 
 
 func (p *MSRProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		// Account
-		// Accounts
+		NewAccountDataSource,
 	}
 }
 
