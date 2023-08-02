@@ -29,7 +29,7 @@ func TestUserResourceDefault(t *testing.T) {
 			// Update and Read testing
 			{
 				Config: providerConfig + `
-			resource "msr_user" "test" {
+				resource "msr_user" "test" {
 				name = "blah"
 				password = "blah"
 				full_name = "blah"

@@ -111,6 +111,8 @@ func (p *MSRProvider) Resources(ctx context.Context) []func() resource.Resource 
 	return []func() resource.Resource{
 		NewOrgResource,
 		NewUserResource,
+		NewTeamResource,
+		NewRepoResource,
 	}
 }
 
