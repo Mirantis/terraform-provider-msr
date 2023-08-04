@@ -13,7 +13,6 @@ func TestAccountDataSource(t *testing.T) {
 			{
 				Config: providerConfig + testMSRaccountDefault(),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					// Verify the item to ensure all attributes are set
 					resource.TestCheckResourceAttr("data.msr_account.test", "name_or_id", TestingVersion),
 					// Verify placeholder id attribute
 					resource.TestCheckResourceAttrSet("data.msr_account.test", "id"),
@@ -22,7 +21,6 @@ func TestAccountDataSource(t *testing.T) {
 			{
 				Config: providerConfig + testMSRaccountSetValues(),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					// Verify the item to ensure all attributes are set
 					resource.TestCheckResourceAttr("data.msr_account.test", "name_or_id", TestingVersion),
 					resource.TestCheckResourceAttr("data.msr_account.test", "name", TestingVersion),
 					resource.TestCheckResourceAttr("data.msr_account.test", "full_name", TestingVersion),

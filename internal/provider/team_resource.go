@@ -210,7 +210,7 @@ func (r *TeamResource) Update(ctx context.Context, req resource.UpdateRequest, r
 			return
 		}
 
-		// Overwrite items with refreshed state
+		// Overwrite team with refreshed state
 		data.Id = types.StringValue(rTeam.ID)
 		data.Name = types.StringValue(rTeam.Name)
 		data.Description = types.StringValue(rTeam.Description)

@@ -137,14 +137,15 @@ func (d *accountDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		resp.Diagnostics.AddWarning("testing mode warning", "msr account datasource handler is in testing mode, no injestion will be run.")
 		data.ID = basetypes.NewStringValue(TestingVersion)
 	} else {
-		rAcc, err := d.client.ReadAccount(ctx, data.ID.ValueString())
+		rAcc, err := d.client.ReadAccount(ctx, data.NameOrID.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Unable to Read Item",
+				"Unable to Read Account",
 				err.Error(),
 			)
 			return
 		}
+
 		data.ID = types.StringValue(rAcc.ID)
 		data.Name = types.StringValue(rAcc.Name)
 		data.FullName = types.StringValue(rAcc.FullName)

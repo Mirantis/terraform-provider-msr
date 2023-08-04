@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Mirantis/terraform-provider-msr/internal/client"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -12,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -54,11 +56,13 @@ func (r *UserResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the user",
 				Required:            true,
+				Validators:          []validator.String{stringvalidator.LengthBetween(3, 16)},
 			},
 			"password": schema.StringAttribute{
 				MarkdownDescription: "The password of the user",
 				Required:            true,
 				Sensitive:           true,
+				Validators:          []validator.String{stringvalidator.LengthBetween(8, 16)},
 			},
 			"full_name": schema.StringAttribute{
 				MarkdownDescription: "The full name of the user",
@@ -200,7 +204,7 @@ func (r *UserResource) Update(ctx context.Context, req resource.UpdateRequest, r
 			return
 		}
 
-		// Overwrite items with refreshed state
+		// Overwrite user with refreshed state
 		data.Id = types.StringValue(rAcc.ID)
 		data.Name = types.StringValue(rAcc.Name)
 		data.FullName = types.StringValue(rAcc.FullName)
@@ -225,7 +229,7 @@ func (r *UserResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 
-	tflog.Debug(ctx, "Deleted item resource", map[string]any{"success": true})
+	tflog.Debug(ctx, "Deleted user resource", map[string]any{"success": true})
 }
 
 func (r *UserResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
