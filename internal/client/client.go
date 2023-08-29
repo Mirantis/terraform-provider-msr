@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 )
 
 const (
@@ -117,9 +118,9 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 }
 
 func (c *Client) createMsrUrl(endpoint string) string {
-	return fmt.Sprintf("%s/%s/%s", c.MsrURL, MSRAPIVERSION, endpoint)
+	return fmt.Sprintf("%s/%s/%s", strings.TrimSuffix(c.MsrURL, "/"), MSRAPIVERSION, endpoint)
 }
 
 func (c *Client) createEnziUrl(endpoint string) string {
-	return fmt.Sprintf("%s/%s/%s", c.MsrURL, ENZIENDPOINT, endpoint)
+	return fmt.Sprintf("%s/%s/%s", strings.TrimSuffix(c.MsrURL, "/"), ENZIENDPOINT, endpoint)
 }

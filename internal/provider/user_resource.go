@@ -56,12 +56,14 @@ func (r *UserResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the user",
 				Required:            true,
-				Validators:          []validator.String{stringvalidator.LengthBetween(3, 16)},
+				Validators:          []validator.String{stringvalidator.LengthBetween(3, 32)},
 			},
 			"password": schema.StringAttribute{
 				MarkdownDescription: "The password of the user",
-				Required:            true,
+				Optional:            true,
 				Sensitive:           true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				Validators:          []validator.String{stringvalidator.LengthBetween(8, 16)},
 			},
 			"full_name": schema.StringAttribute{
@@ -141,6 +143,7 @@ func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, r
 		tflog.Trace(ctx, fmt.Sprintf("created User resource `%s`", data.Name.ValueString()))
 
 		data.Id = basetypes.NewStringValue(rAcc.ID)
+		data.Password = basetypes.NewStringValue(pass)
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
