@@ -18,12 +18,12 @@ User resource
 ### Required
 
 - `name` (String) The name of the user
-- `password` (String, Sensitive) The password of the user
 
 ### Optional
 
 - `full_name` (String) The full name of the user
 - `is_admin` (Boolean) Is the user an admin
+- `password` (String, Sensitive) The password of the user
 
 ### Read-Only
 
