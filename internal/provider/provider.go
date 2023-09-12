@@ -3,8 +3,6 @@ package provider
 import (
 	"context"
 
-	//	"net/http"
-
 	"github.com/Mirantis/terraform-provider-msr/internal/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -113,6 +111,7 @@ func (p *MSRProvider) Resources(ctx context.Context) []func() resource.Resource 
 		NewUserResource,
 		NewTeamResource,
 		NewRepoResource,
+		NewPruningPolicyResource,
 	}
 }
 
