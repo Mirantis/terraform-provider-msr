@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/Mirantis/terraform-provider-msr/internal/client"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -102,6 +103,7 @@ func (r *PruningPolicyResource) Configure(ctx context.Context, req resource.Conf
 	}
 
 	client, ok := req.ProviderData.(client.Client)
+	client.HTTPClient.Timeout = 240 * time.Second
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Client error",
@@ -133,6 +135,27 @@ func (r *PruningPolicyResource) Create(ctx context.Context, req resource.CreateR
 		resp.Diagnostics.AddWarning("testing mode warning", "msr repo resource handler is in testing mode, no creation will be run.")
 		data.Id = basetypes.NewStringValue(TestingVersion)
 	} else {
+		existingPolicies, err := r.client.ReadPruningPolicies(ctx, data.OrgName.ValueString(), data.RepoName.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Unexpected Create pruning policy error",
+				err.Error(),
+			)
+			return
+		}
+		existingPolicy := r.client.PruningPolicyExists(ctx, pruningPolicy, existingPolicies)
+		tflog.Debug(ctx, fmt.Sprintf("Returned existingPolicy %+v\n", existingPolicy))
+
+		// There is an existing pruning policy
+		if existingPolicy.ID != "" {
+			resp.Diagnostics.AddError(
+				"Cannot create duplicate pruning policy",
+				fmt.Sprintf("Pruning policy already exists with id %s", existingPolicy.ID),
+			)
+			return
+		}
+		tflog.Debug(ctx, fmt.Sprintf("Proceeding with Policy creation %+v\n", existingPolicy))
+
 		rPolicy, err := r.client.CreatePruningPolicy(ctx, data.OrgName.ValueString(), data.RepoName.ValueString(), pruningPolicy)
 		if err != nil {
 			resp.Diagnostics.AddError(
