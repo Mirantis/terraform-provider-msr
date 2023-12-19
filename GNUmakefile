@@ -20,7 +20,7 @@ lint:
 # Local install of the plugin
 .PHONY: local
 local:
-	GORELEASER_CURRENT_TAG="$(LOCAL_TAG)" goreleaser build --clean --single-target --skip-validate
+	GORELEASER_CURRENT_TAG="$(LOCAL_TAG)" goreleaser build --clean --single-target --skip=validate
 
 	# "Local plugin generated. Use $(CURDIR)/dist/terraform-provider-msr_linux_amd64_v1 as your dev_overrides path in a terraform config file
 	#
