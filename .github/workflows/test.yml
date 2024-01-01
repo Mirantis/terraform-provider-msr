@@ -28,7 +28,7 @@ jobs:
         run: git config --global url."https://${{ secrets.GH_MCC_USERNAME }}:${{ secrets.GH_MCC_ACCESS_TOKEN }}@github.com/".insteadOf "https://github.com/"
 
       - uses: actions/checkout@v3.5.2
-      - uses: actions/setup-go@v4.0.1
+      - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
           cache: false
@@ -46,7 +46,7 @@ jobs:
         run: git config --global url."https://${{ secrets.GH_MCC_USERNAME }}:${{ secrets.GH_MCC_ACCESS_TOKEN }}@github.com/".insteadOf "https://github.com/"
 
       - uses: actions/checkout@v3.5.2
-      - uses: actions/setup-go@v4.0.1
+      - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
           cache: true
@@ -75,7 +75,7 @@ jobs:
         run: git config --global url."https://${{ secrets.GH_MCC_USERNAME }}:${{ secrets.GH_MCC_ACCESS_TOKEN }}@github.com/".insteadOf "https://github.com/"
 
       - uses: actions/checkout@v3.5.2
-      - uses: actions/setup-go@v4.0.1
+      - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
           cache: true
